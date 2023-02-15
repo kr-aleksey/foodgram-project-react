@@ -15,3 +15,30 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+
+  db:
+    image: postgres:13.0-alpine
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+  backend:
+#    image: kraleksey/api_yamdb_final:latest
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - static_volume:/app/static/
+      - media_volume:/app/media/
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+
+volumes:
+  db_data:
+  static_volume:
+  media_volume:
