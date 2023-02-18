@@ -8,14 +8,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
+        fields = [
             'email',
             'id',
             'username',
             'first_name',
             'last_name',
-        )
-        read_only_fields = ('id',)
+        ]
+        read_only_fields = ['id']
 
     @staticmethod
     def validate_username(username):
