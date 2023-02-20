@@ -6,6 +6,7 @@ from .models import User, Follow
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    search_fields = ('email', 'username', 'first_name', 'last_name')
     fieldsets = (
         (
             None,

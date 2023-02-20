@@ -17,9 +17,12 @@ class Ingredient(models.Model):
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
+    def __str__(self):
+        return self.name
+
 
 class Tag(models.Model):
-    name = models.TextField('Название',
+    name = models.CharField('Название',
                             max_length=50,
                             unique=True)
     color = models.CharField('Цветовой HEX-код',
@@ -30,6 +33,9 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -42,8 +48,8 @@ class Recipe(models.Model):
     image = models.ImageField('Картинка',
                               blank=True,
                               upload_to='recipes/')
-    tag = models.ManyToManyField(Tag,
-                                 verbose_name='Теги')
+    tags = models.ManyToManyField(Tag,
+                                  verbose_name='Теги')
     text = models.TextField('Описание')
     cooking_time = models.PositiveSmallIntegerField(
         'Время приготовления, мин.',
@@ -57,6 +63,9 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
 
 
 class RecipeIngredient(models.Model):
@@ -80,4 +89,17 @@ class Favorite(models.Model):
                              verbose_name='Пользователь')
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
-                               verbose_name='Рецепты')
+                               verbose_name='Рецепт')
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user.username} - {self.recipe.name}'
