@@ -7,8 +7,7 @@ from .filters import IngredientFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (IngredientSerializer,
                           TagSerializer,
-                          RecipeCreateSerializer,
-                          RecipeReadSerializer)
+                          RecipeSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -32,13 +31,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 .objects
                 .select_related('author')
                 .prefetch_related('tags'))
-    permission_classes = [IsAuthenticatedOrReadOnly,
-                          IsAuthorOrReadOnly]
-
-    def get_serializer_class(self):
-        if self.request.method == 'GET':
-            return RecipeReadSerializer
-        return RecipeCreateSerializer
+    serializer_class = RecipeSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)

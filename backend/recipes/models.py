@@ -1,4 +1,3 @@
-from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -74,15 +73,15 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
-                               # related_name='ingredients_set',
+                               related_name='ingredients_in_recipe',
                                verbose_name='Рецепт')
     ingredient = models.ForeignKey(Ingredient,
                                    on_delete=models.PROTECT,
                                    verbose_name='Ингридиент')
-    amount = models.DecimalField('Количество',
-                                 max_digits=6,
-                                 decimal_places=2,
-                                 validators=[MinValueValidator(Decimal(0.01))])
+    amount = models.PositiveSmallIntegerField(
+        'Количество',
+        validators=[MinValueValidator(1)]
+    )
 
 
 class Favorite(models.Model):
