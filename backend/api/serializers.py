@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
 from recipes.services import create_recipe, update_recipe
 from users.serializers import UserSerializer
 
@@ -93,3 +93,22 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         return update_recipe(instance, validated_data)
+
+
+class ShortRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ['id', 'name', 'image', 'cooking_time']
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = ['user', 'recipe']
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=['user', 'recipe'],
+                message='Это рецепт уже есть в избранном.'
+            )
+        ]

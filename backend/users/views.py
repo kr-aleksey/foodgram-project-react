@@ -26,3 +26,13 @@ class UserViewSet(mixins.CreateModelMixin,
     def me(self, request):
         serializer = serializers.UserSerializer(instance=request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def set_password(self, request):
+        serializer = serializers.ChangePasswordSerializer(
+            data=request.data,
+            context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.data['new_password'])
+        request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
