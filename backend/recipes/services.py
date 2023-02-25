@@ -1,6 +1,8 @@
 from typing import Any
 
-from .models import Recipe, RecipeIngredient
+from django.db.models import Exists, OuterRef
+
+from .models import Favorite, Recipe, RecipeIngredient
 
 
 def create_recipe(data: dict[str, Any]) -> Recipe:
@@ -28,3 +30,9 @@ def add_recipe_related_objs(recipe: Recipe, tags, ingredients):
         [RecipeIngredient(recipe=recipe, **params)
          for params in ingredients]
     )
+
+
+def get_annotated_recipes(user):
+    user_favorites = Favorite.objects.filter(user=user,
+                                             recipe=OuterRef('pk'))
+    return Recipe.objects.annotate(is_favorited=Exists(user_favorites))

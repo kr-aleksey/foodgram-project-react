@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Exists, OuterRef
 
 User = get_user_model()
 
@@ -39,6 +40,15 @@ class Tag(models.Model):
         return self.name
 
 
+class RecipeManager(models.Manager):
+    def all_annotated(self, user):
+        if not user.is_authenticated:
+            user = None
+        user_favorites = Favorite.objects.filter(user=user,
+                                                 recipe=OuterRef('pk'))
+        return self.annotate(is_favorited=Exists(user_favorites))
+
+
 class Recipe(models.Model):
     name = models.CharField('Название',
                             max_length=200)
@@ -56,10 +66,11 @@ class Recipe(models.Model):
         'Время приготовления, мин.',
         validators=[MinValueValidator(1)]
     )
-
     ingredients = models.ManyToManyField(Ingredient,
                                          through='RecipeIngredient',
                                          verbose_name='Ингридиенты')
+
+    objects = RecipeManager()
 
     class Meta:
         verbose_name = 'Рецепт'

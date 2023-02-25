@@ -1,13 +1,15 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters.rest_framework import DjangoFilterBackend
+from recipes.models import Favorite, Ingredient, Recipe, Tag
 from rest_framework import status, views, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from recipes.models import Favorite, Ingredient, Recipe, Tag
 from .filters import IngredientFilter
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (FavoriteSerializer, IngredientSerializer, RecipeSerializer, ShortRecipeSerializer,
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          RecipeSerializer, ShortRecipeSerializer,
                           TagSerializer)
 
 
@@ -28,16 +30,20 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = (Recipe
-                .objects
-                .select_related('author')
-                .prefetch_related('tags'))
+    # queryset = (Recipe
+    #             .objects
+    #             .select_related('author')
+    #             .prefetch_related('tags'))
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        qs = Recipe.objects.all_annotated(user=self.request.user)
+        return qs
 
 
 class FavoriteViewSet(views.APIView):
@@ -51,7 +57,7 @@ class FavoriteViewSet(views.APIView):
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
-            return Response(f'Рецепт не найден в избранном',
+            return Response('Рецепт не найден в избранном',
                             status.HTTP_400_BAD_REQUEST)
 
     @staticmethod

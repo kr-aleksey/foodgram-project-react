@@ -2,10 +2,9 @@ import base64
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from rest_framework import serializers
-
 from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
 from recipes.services import create_recipe, update_recipe
+from rest_framework import serializers
 from users.serializers import UserSerializer
 
 
@@ -71,6 +70,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                                              source='ingredients_in_recipe')
     image = Base64ImageField()
     author = UserSerializer(read_only=True)
+    is_favorited = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -78,11 +78,12 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'tags',
                   'author',
                   'ingredients',
+                  'is_favorited',
                   'name',
                   'image',
                   'text',
                   'cooking_time']
-        read_only_fields = ['id', 'author']
+        read_only_fields = ['id', 'author', 'is_favorited']
 
     def __init__(self, *args, **kwargs):
         kwargs['partial'] = False
