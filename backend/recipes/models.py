@@ -69,13 +69,15 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(Ingredient,
                                          through='RecipeIngredient',
                                          verbose_name='Ингридиенты')
+    published_at = models.DateTimeField('Опубликован',
+                                        auto_now_add=True)
 
     objects = RecipeManager()
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ['name']
+        ordering = ['-published_at']
 
     def __str__(self):
         return self.name

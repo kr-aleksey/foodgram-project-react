@@ -16,9 +16,17 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author')
+    list_display = ('id', 'name', 'author', 'published_at')
     search_fields = ('author__username', 'name', 'tags__name')
-    fields = ('name', 'author', 'text', 'cooking_time', 'tags', 'image')
+    date_hierarchy = 'published_at'
+    fields = ('name',
+              'author',
+              'text',
+              'cooking_time',
+              'tags',
+              'image',
+              'published_at')
+    readonly_fields = ('published_at', )
 
 
 @admin.register(RecipeIngredient)
