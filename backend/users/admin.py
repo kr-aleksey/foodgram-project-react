@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Follow, User
+from .models import Subscribe, User
 
 
 @admin.register(User)
@@ -42,4 +42,4 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-admin.register(Follow)
+admin.register(Subscribe)

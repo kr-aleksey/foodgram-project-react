@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, status, viewsets, views
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -16,6 +16,9 @@ class UserViewSet(mixins.CreateModelMixin,
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     lookup_field = 'username'
+
+    def get_queryset(self):
+        return User.objects.annotated(user=self.request.user)
 
     def get_permissions(self):
         if self.action == 'me':

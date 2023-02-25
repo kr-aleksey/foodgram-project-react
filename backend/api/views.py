@@ -1,15 +1,20 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import Favorite, Ingredient, Recipe, Tag
 from rest_framework import status, views, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
+from recipes.models import Favorite, Ingredient, Recipe, Tag
+from users.models import Subscribe
 from .filters import IngredientFilter
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, ShortRecipeSerializer,
+from .serializers import (FavoriteSerializer,
+                          IngredientSerializer,
+                          RecipeSerializer,
+                          ShortRecipeSerializer,
+                          SubscribeCreateSerializer,
+                          SubscribeReadSerializer,
                           TagSerializer)
 
 
@@ -30,10 +35,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    # queryset = (Recipe
-    #             .objects
-    #             .select_related('author')
-    #             .prefetch_related('tags'))
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     http_method_names = ['get', 'post', 'patch', 'delete']
@@ -42,11 +43,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return serializer.save(author=self.request.user)
 
     def get_queryset(self):
-        qs = Recipe.objects.all_annotated(user=self.request.user)
-        return qs
+        return Recipe.objects.all_annotated(user=self.request.user)
 
 
-class FavoriteViewSet(views.APIView):
+class FavoriteView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     @staticmethod
@@ -69,6 +69,34 @@ class FavoriteViewSet(views.APIView):
         if serializer.is_valid():
             favorite = serializer.save()
             return Response(ShortRecipeSerializer(favorite.recipe).data,
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+
+class SubscribeView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def delete(request, author_id):
+        try:
+            Subscribe.objects.get(user=request.user,
+                                  author=author_id).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist:
+            return Response('Подписка не найдена',
+                            status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def post(request, author_id):
+        serializer = SubscribeCreateSerializer(
+            data={'user': request.user.pk,
+                  'author': author_id}
+        )
+        if serializer.is_valid():
+            author = serializer.save().author
+            author.is_subscribed = True
+            return Response(SubscribeReadSerializer(author).data,
                             status=status.HTTP_201_CREATED)
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)

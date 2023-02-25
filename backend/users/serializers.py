@@ -5,6 +5,8 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -13,8 +15,9 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
+            'is_subscribed',
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'is_subscribed']
 
     @staticmethod
     def validate_username(username):

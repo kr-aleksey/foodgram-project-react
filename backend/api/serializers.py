@@ -1,11 +1,16 @@
 import base64
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
 from recipes.services import create_recipe, update_recipe
 from rest_framework import serializers
+
+from users.models import Subscribe
 from users.serializers import UserSerializer
+
+User = get_user_model()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -113,3 +118,40 @@ class FavoriteSerializer(serializers.ModelSerializer):
                 message='Это рецепт уже есть в избранном.'
             )
         ]
+
+
+class SubscribeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscribe
+        fields = ['user', 'author']
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Subscribe.objects.all(),
+                fields=['user', 'author'],
+                message='Эта подписка уже существует.'
+            )
+        ]
+
+    def validate(self, attrs):
+        if attrs.get('author') == attrs.get('user'):
+            raise serializers.ValidationError(
+                'Подписка на самого себя запрещена!')
+        return attrs
+
+
+class SubscribeReadSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.BooleanField()
+    recipes = ShortRecipeSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+        ]
+        read_only_fields = ['id', 'is_subscribed']

@@ -1,5 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Exists, OuterRef
+
+
+class UserManager(models.Manager):
+
+    def annotated(self, user):
+        if not user.is_authenticated:
+            user = None
+        user_subscribes = Subscribe.objects.filter(user=user,
+                                                   author=OuterRef('pk'))
+        return self.annotate(is_subscribed=Exists(user_subscribes))
 
 
 class User(AbstractUser):
@@ -12,15 +23,17 @@ class User(AbstractUser):
     last_name = models.CharField('Фамилия',
                                  max_length=150)
 
+    objects = UserManager()
 
-class Follow(models.Model):
-    follower = models.ForeignKey(User,
-                                 on_delete=models.CASCADE,
-                                 related_name='follower',
-                                 verbose_name='Подписчик')
+
+class Subscribe(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='subscribes',
+                             verbose_name='Подписчик')
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
-                               related_name='following',
+                               related_name='subscribers',
                                verbose_name='Автор')
 
     class Meta:
@@ -28,7 +41,7 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                fields=['follower', 'author'],
-                name='unique_follow'
+                fields=['user', 'author'],
+                name='unique_subscribe'
             ),
         ]
