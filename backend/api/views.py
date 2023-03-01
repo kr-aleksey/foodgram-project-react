@@ -1,21 +1,19 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, views, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
+from recipes import services
 from recipes.models import Favorite, Ingredient, Recipe, Tag
-from users.models import Subscribe
 from .filters import IngredientFilter
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (FavoriteSerializer,
-                          IngredientSerializer,
-                          RecipeSerializer,
-                          ShortRecipeSerializer,
-                          SubscribeCreateSerializer,
-                          SubscribeReadSerializer,
-                          TagSerializer)
+from .serializers import (FavoriteSerializer, IngredientSerializer,
+                          RecipeSerializer, ShortRecipeSerializer,
+                          SubscribeCreateSerializer, SubscribeReadSerializer,
+                          TagSerializer, PurchaseSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,7 +41,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return serializer.save(author=self.request.user)
 
     def get_queryset(self):
-        return Recipe.objects.all_annotated(user=self.request.user)
+        return Recipe.objects.annotated(user=self.request.user)
 
 
 class FavoriteView(views.APIView):
@@ -80,8 +78,8 @@ class SubscribeView(views.APIView):
     @staticmethod
     def delete(request, author_id):
         try:
-            Subscribe.objects.get(user=request.user,
-                                  author=author_id).delete()
+            services.delete_subscribe(user=request.user,
+                                      author=author_id)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
             return Response('Подписка не найдена',
@@ -97,6 +95,47 @@ class SubscribeView(views.APIView):
             author = serializer.save().author
             author.is_subscribed = True
             return Response(SubscribeReadSerializer(author).data,
-                            status=status.HTTP_201_CREATED)
+                            status.HTTP_201_CREATED)
         return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+                        status.HTTP_400_BAD_REQUEST)
+
+
+class PurchaseView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def delete(request, recipe_id):
+        try:
+            services.delete_purchase(user=request.user,
+                                     recipe=recipe_id)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ObjectDoesNotExist:
+            return Response('Покупка не найдена в корзине.',
+                            status.HTTP_400_BAD_REQUEST)
+
+    @staticmethod
+    def post(request, recipe_id):
+        serializer = PurchaseSerializer(
+            data={'user': request.user.pk,
+                  'recipe': recipe_id}
+        )
+        if serializer.is_valid():
+            purchase = serializer.save()
+            return Response(ShortRecipeSerializer(purchase.recipe).data,
+                            status.HTTP_201_CREATED)
+        return Response(serializer.errors,
+                        status.HTTP_400_BAD_REQUEST)
+
+
+class ShoppingCartView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        shoppinglist = services.get_shoppinglist(request.user)
+        return HttpResponse(
+            shoppinglist,
+            headers={
+                'Content-Type': 'text/plain',
+                'Content-Disposition':
+                    'attachment; filename="Foodgram shoppinglist.txt"'
+            })

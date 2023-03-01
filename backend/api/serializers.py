@@ -3,10 +3,10 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
-from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
-from recipes.services import create_recipe, update_recipe
 from rest_framework import serializers
 
+from recipes.models import Favorite, Ingredient, Purchase, Recipe, RecipeIngredient, Tag
+from recipes.services import create_recipe, update_recipe
 from users.models import Subscribe
 from users.serializers import UserSerializer
 
@@ -76,6 +76,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     author = UserSerializer(read_only=True)
     is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -84,11 +85,15 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'author',
                   'ingredients',
                   'is_favorited',
+                  'is_in_shopping_cart',
                   'name',
                   'image',
                   'text',
                   'cooking_time']
-        read_only_fields = ['id', 'author', 'is_favorited']
+        read_only_fields = ['id',
+                            'author',
+                            'is_favorited',
+                            'is_in_shopping_cart']
 
     def __init__(self, *args, **kwargs):
         kwargs['partial'] = False
@@ -155,3 +160,16 @@ class SubscribeReadSerializer(serializers.ModelSerializer):
             'recipes',
         ]
         read_only_fields = ['id', 'is_subscribed']
+
+
+class PurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Purchase
+        fields = ['user', 'recipe']
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Purchase.objects.all(),
+                fields=['user', 'recipe'],
+                message='Это рецепт уже есть в корзине покупок.'
+            )
+        ]

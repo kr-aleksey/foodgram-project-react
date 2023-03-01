@@ -1,8 +1,10 @@
-from typing import Any
+import io
+from typing import Any, Union
 
-from django.db.models import Exists, OuterRef
+from django.contrib.auth.models import User
+from django.db.models import F, Sum
 
-from .models import Favorite, Recipe, RecipeIngredient
+from .models import Purchase, Recipe, RecipeIngredient
 
 
 def create_recipe(data: dict[str, Any]) -> Recipe:
@@ -13,7 +15,8 @@ def create_recipe(data: dict[str, Any]) -> Recipe:
     return recipe
 
 
-def update_recipe(recipe: Recipe, data: dict[str, Any]) -> Recipe:
+def update_recipe(recipe: Recipe,
+                  data: dict[str, Any]) -> Recipe:
     ingredients = data.pop('ingredients_in_recipe')
     tags = data.pop('tags')
     for attr, value in data.items():
@@ -24,7 +27,8 @@ def update_recipe(recipe: Recipe, data: dict[str, Any]) -> Recipe:
     return recipe
 
 
-def add_recipe_related_objs(recipe: Recipe, tags, ingredients):
+def add_recipe_related_objs(recipe: Recipe,
+                            tags, ingredients) -> None:
     recipe.tags.set(tags)
     RecipeIngredient.objects.bulk_create(
         [RecipeIngredient(recipe=recipe, **params)
@@ -32,7 +36,38 @@ def add_recipe_related_objs(recipe: Recipe, tags, ingredients):
     )
 
 
-def get_annotated_recipes(user):
-    user_favorites = Favorite.objects.filter(user=user,
-                                             recipe=OuterRef('pk'))
-    return Recipe.objects.annotate(is_favorited=Exists(user_favorites))
+def delete_purchase(user: Union[int, User],
+                    recipe: Union[int, Recipe]) -> None:
+    (Purchase
+     .objects
+     .get(user=user, recipe=recipe)
+     .delete())
+
+
+def delete_subscribe(user: Union[int, User],
+                     author: Union[int, User]) -> None:
+    (Purchase
+     .objects
+     .get(user=user, author=author)
+     .delete())
+
+
+def get_shoppinglist(user: User):
+    recipes = Purchase.objects.filter(user=user).values('recipe')
+    ingredients = (RecipeIngredient
+                   .objects
+                   .filter(recipe__in=recipes)
+                   .values('ingredient_id')
+                   .annotate(name=F('ingredient__name'),
+                             measurement_unit=F('ingredient__measurement_unit'),
+                             amount=Sum('amount')))
+
+    shopping_list = ''
+    ingredient_line = '{ingredient} ({measurement_unit}) - {amount}\n'
+    for ingredient in ingredients:
+        shopping_list += ingredient_line.format(
+            ingredient=ingredient.get('name'),
+            measurement_unit=ingredient.get('measurement_unit'),
+            amount=ingredient.get('amount')
+        )
+    return shopping_list

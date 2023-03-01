@@ -41,12 +41,15 @@ class Tag(models.Model):
 
 
 class RecipeManager(models.Manager):
-    def all_annotated(self, user):
+    def annotated(self, user):
         if not user.is_authenticated:
             user = None
         user_favorites = Favorite.objects.filter(user=user,
                                                  recipe=OuterRef('pk'))
-        return self.annotate(is_favorited=Exists(user_favorites))
+        user_purchases = Purchase.objects.filter(user=user,
+                                                 recipe=OuterRef('pk'))
+        return self.annotate(is_favorited=Exists(user_favorites),
+                             is_in_shopping_cart=Exists(user_purchases))
 
 
 class Recipe(models.Model):
@@ -112,6 +115,28 @@ class Favorite(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='unique_favorite'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user.username} - {self.recipe.name}'
+
+
+class Purchase(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             verbose_name='Пользователь')
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
+                               verbose_name='Рецепт')
+
+    class Meta:
+        verbose_name = 'Покупка'
+        verbose_name_plural = 'Корзина покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_purchase'
             )
         ]
 
