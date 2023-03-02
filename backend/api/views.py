@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 from rest_framework import status, views, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -61,8 +62,7 @@ class FavoriteView(views.APIView):
     @staticmethod
     def post(request, recipe_id):
         serializer = FavoriteSerializer(
-            data={'user': request.user.pk,
-                  'recipe': recipe_id}
+            data={'user': request.user.pk, 'recipe': recipe_id}
         )
         if serializer.is_valid():
             favorite = serializer.save()
@@ -138,6 +138,7 @@ class ShoppingCartView(views.APIView):
             headers={
                 'Content-Type': 'text/plain',
                 'Content-Disposition':
-                    'attachment; filename="Foodgram shoppinglist.txt"'
+                    f'attachment; '
+                    f'filename={ settings.SHOPPINGLIST_FILENAME }'
             }
         )

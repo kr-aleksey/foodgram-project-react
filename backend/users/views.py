@@ -14,8 +14,9 @@ class UserViewSet(mixins.CreateModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
     lookup_field = 'username'
+    serializer_class = serializers.UserSerializer
+
 
     def get_queryset(self):
         return User.objects.annotated(user=self.request.user)
@@ -24,7 +25,6 @@ class UserViewSet(mixins.CreateModelMixin,
         if self.action == 'me':
             return [IsAuthenticated()]
         return [AllowAny()]
-
 
     @action(['get'], detail=False)
     def me(self, request):
