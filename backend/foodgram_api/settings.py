@@ -135,7 +135,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-MEDIA_URL = '/media/'
+MEDIA_URL = 'http://127.0.0.1/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
@@ -168,10 +168,6 @@ AUTH_USER_MODEL = 'users.User'
 DJOSER = {
     'LOGIN_FIELD': 'email',
 }
-
-# Shoppinglist
-
-SHOPPINGLIST_FILENAME = 'Foodgram shoppinglist.txt'
 
 
 # Отладка

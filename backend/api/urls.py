@@ -13,8 +13,8 @@ router.register('users/subscriptions', SubscriptionsView, basename='subscription
 
 urlpatterns = [
     path('recipes/<int:recipe_id>/favorite/', FavoriteView.as_view()),
-    path('recipes/<int:recipe_id>/shoping_cart/', PurchaseView.as_view()),
-    path('recipes/download_shoping_cart/', ShoppingCartView.as_view()),
+    path('recipes/<int:recipe_id>/shopping_cart/', PurchaseView.as_view()),
+    path('recipes/download_shopping_cart/', ShoppingCartView.as_view()),
     path('users/<int:author_id>/subscribe/', SubscribeView.as_view()),
     path('', include(router.urls)),
 ]

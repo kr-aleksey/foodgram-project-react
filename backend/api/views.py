@@ -157,8 +157,8 @@ class ShoppingCartView(views.APIView):
             shoppinglist,
             headers={
                 'Content-Type': 'text/plain',
-                'Content-Disposition':
-                    f'attachment; '
-                    f'filename={settings.SHOPPINGLIST_FILENAME}'
+                # 'Content-Disposition':
+                #     f'attachment; '
+                #     f'filename={settings.SHOPPINGLIST_FILENAME}'
             }
         )
