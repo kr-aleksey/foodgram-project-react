@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 User = get_user_model()
@@ -6,6 +8,8 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.BooleanField(read_only=True)
+    password = serializers.CharField(style={"input_type": "password"},
+                                     write_only=True)
 
     class Meta:
         model = User
@@ -16,6 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
+            'password',
         ]
         read_only_fields = ['id', 'is_subscribed']
 
@@ -24,7 +29,25 @@ class UserSerializer(serializers.ModelSerializer):
         if username.lower() == 'me':
             raise serializers.ValidationError(
                 f'Использовать имя "{username}" запрещено!')
+
         return username
+
+    def validate(self, attrs):
+        user = User(**attrs)
+        password = attrs.get("password")
+
+        try:
+            validate_password(password, user)
+        except ValidationError as e:
+            serializer_error = serializers.as_serializer_error(e)
+            raise serializers.ValidationError(
+                {"password": serializer_error["non_field_errors"]}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
 
 class ChangePasswordSerializer(serializers.Serializer):

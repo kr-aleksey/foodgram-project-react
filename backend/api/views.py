@@ -130,7 +130,8 @@ class PurchaseView(views.APIView):
 class ShoppingCartView(views.APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @staticmethod
+    def get(request):
         shoppinglist = services.get_shoppinglist(request.user)
         return HttpResponse(
             shoppinglist,
@@ -138,4 +139,5 @@ class ShoppingCartView(views.APIView):
                 'Content-Type': 'text/plain',
                 'Content-Disposition':
                     'attachment; filename="Foodgram shoppinglist.txt"'
-            })
+            }
+        )

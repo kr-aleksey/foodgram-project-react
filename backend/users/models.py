@@ -1,9 +1,9 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.db.models import Exists, OuterRef
 
 
-class UserManager(models.Manager):
+class UserManager(UserManager):
 
     def annotated(self, user):
         if not user.is_authenticated:

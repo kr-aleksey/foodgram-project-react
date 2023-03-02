@@ -25,6 +25,7 @@ class UserViewSet(mixins.CreateModelMixin,
             return [IsAuthenticated()]
         return [AllowAny()]
 
+
     @action(['get'], detail=False)
     def me(self, request):
         serializer = serializers.UserSerializer(instance=request.user)
