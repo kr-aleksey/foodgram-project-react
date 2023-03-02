@@ -1,7 +1,7 @@
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from django.conf import settings
 from rest_framework import status, views, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -9,12 +9,10 @@ from rest_framework.response import Response
 
 from recipes import services
 from recipes.models import Favorite, Ingredient, Recipe, Tag
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
-from .serializers import (FavoriteSerializer, IngredientSerializer,
-                          RecipeSerializer, ShortRecipeSerializer,
-                          SubscribeCreateSerializer, SubscribeReadSerializer,
-                          TagSerializer, PurchaseSerializer)
+from .serializers import (FavoriteSerializer, IngredientSerializer, PurchaseSerializer, RecipeSerializer,
+                          ShortRecipeSerializer, SubscribeCreateSerializer, SubscribeReadSerializer, TagSerializer)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -37,12 +35,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     http_method_names = ['get', 'post', 'patch', 'delete']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         return serializer.save(author=self.request.user)
 
     def get_queryset(self):
-        return Recipe.objects.annotated(user=self.request.user)
+        return (Recipe
+                .objects
+                .annotated(user=self.request.user)
+                .prefetch_related('ingredients_in_recipe__ingredient',
+                                  'tags',
+                                  'author'))
 
 
 class FavoriteView(views.APIView):
@@ -139,6 +144,6 @@ class ShoppingCartView(views.APIView):
                 'Content-Type': 'text/plain',
                 'Content-Disposition':
                     f'attachment; '
-                    f'filename={ settings.SHOPPINGLIST_FILENAME }'
+                    f'filename={settings.SHOPPINGLIST_FILENAME}'
             }
         )

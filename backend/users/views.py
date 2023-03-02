@@ -14,15 +14,14 @@ class UserViewSet(mixins.CreateModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.all()
-    lookup_field = 'username'
+    # lookup_field = 'username'
     serializer_class = serializers.UserSerializer
-
 
     def get_queryset(self):
         return User.objects.annotated(user=self.request.user)
 
     def get_permissions(self):
-        if self.action == 'me':
+        if self.action in ('me', 'retrieve'):
             return [IsAuthenticated()]
         return [AllowAny()]
 

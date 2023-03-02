@@ -1,9 +1,9 @@
-import io
 from typing import Any, Union
 
 from django.contrib.auth.models import User
 from django.db.models import F, Sum
 
+from users.models import Subscribe
 from .models import Purchase, Recipe, RecipeIngredient
 
 
@@ -46,7 +46,7 @@ def delete_purchase(user: Union[int, User],
 
 def delete_subscribe(user: Union[int, User],
                      author: Union[int, User]) -> None:
-    (Purchase
+    (Subscribe
      .objects
      .get(user=user, author=author)
      .delete())

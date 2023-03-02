@@ -12,6 +12,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'color')
+    fields = ('name', 'slug', 'color')
 
 
 @admin.register(Recipe)
