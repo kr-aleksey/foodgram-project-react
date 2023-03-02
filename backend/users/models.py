@@ -3,14 +3,16 @@ from django.db import models
 from django.db.models import Exists, OuterRef
 
 
-class UserManager(UserManager):
+class CustomUserManager(UserManager):
 
     def annotated(self, user):
         if not user.is_authenticated:
             user = None
-        user_subscribes = Subscribe.objects.filter(user=user,
-                                                   author=OuterRef('pk'))
-        return self.annotate(is_subscribed=Exists(user_subscribes))
+        user_subscriptions = (Subscription
+                              .objects
+                              .filter(user=user,
+                                      author=OuterRef('pk')))
+        return self.annotate(is_subscribed=Exists(user_subscriptions))
 
 
 class User(AbstractUser):
@@ -23,13 +25,18 @@ class User(AbstractUser):
     last_name = models.CharField('Фамилия',
                                  max_length=150)
 
-    objects = UserManager()
+    objects = CustomUserManager()
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = ['username']
 
 
-class Subscribe(models.Model):
+class Subscription(models.Model):
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='subscribes',
+                             related_name='subscriptions',
                              verbose_name='Подписчик')
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,

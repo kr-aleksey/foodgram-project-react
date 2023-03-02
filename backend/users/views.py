@@ -14,7 +14,6 @@ class UserViewSet(mixins.CreateModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     queryset = User.objects.all()
-    # lookup_field = 'username'
     serializer_class = serializers.UserSerializer
 
     def get_queryset(self):

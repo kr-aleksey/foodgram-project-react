@@ -3,7 +3,7 @@ from typing import Any, Union
 from django.contrib.auth.models import User
 from django.db.models import F, Sum
 
-from users.models import Subscribe
+from users.models import Subscription
 from .models import Purchase, Recipe, RecipeIngredient
 
 
@@ -44,9 +44,9 @@ def delete_purchase(user: Union[int, User],
      .delete())
 
 
-def delete_subscribe(user: Union[int, User],
-                     author: Union[int, User]) -> None:
-    (Subscribe
+def delete_subscription(user: Union[int, User],
+                        author: Union[int, User]) -> None:
+    (Subscription
      .objects
      .get(user=user, author=author)
      .delete())

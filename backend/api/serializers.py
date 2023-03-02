@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from recipes.models import Favorite, Ingredient, Purchase, Recipe, RecipeIngredient, Tag
 from recipes.services import create_recipe, update_recipe
-from users.models import Subscribe
+from users.models import Subscription
 from users.serializers import UserSerializer
 
 User = get_user_model()
@@ -132,13 +132,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
         ]
 
 
-class SubscribeCreateSerializer(serializers.ModelSerializer):
+class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Subscribe
+        model = Subscription
         fields = ['user', 'author']
         validators = [
             serializers.UniqueTogetherValidator(
-                queryset=Subscribe.objects.all(),
+                queryset=Subscription.objects.all(),
                 fields=['user', 'author'],
                 message='Эта подписка уже существует.'
             )
@@ -151,7 +151,7 @@ class SubscribeCreateSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class SubscribeReadSerializer(serializers.ModelSerializer):
+class SubscriptionSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.BooleanField()
     recipes = ShortRecipeSerializer(many=True)
 

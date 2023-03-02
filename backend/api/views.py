@@ -1,8 +1,9 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, views, viewsets
+from rest_framework import mixins, status, views, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
@@ -12,7 +13,9 @@ from recipes.models import Favorite, Ingredient, Recipe, Tag
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer, PurchaseSerializer, RecipeSerializer,
-                          ShortRecipeSerializer, SubscribeCreateSerializer, SubscribeReadSerializer, TagSerializer)
+                          ShortRecipeSerializer, SubscribeSerializer, SubscriptionSerializer, TagSerializer)
+
+User = get_user_model()
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -83,8 +86,7 @@ class SubscribeView(views.APIView):
     @staticmethod
     def delete(request, author_id):
         try:
-            services.delete_subscribe(user=request.user,
-                                      author=author_id)
+            services.delete_subscription(user=request.user, author=author_id)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
             return Response('Подписка не найдена',
@@ -92,17 +94,30 @@ class SubscribeView(views.APIView):
 
     @staticmethod
     def post(request, author_id):
-        serializer = SubscribeCreateSerializer(
+        serializer = SubscribeSerializer(
             data={'user': request.user.pk,
                   'author': author_id}
         )
         if serializer.is_valid():
             author = serializer.save().author
             author.is_subscribed = True
-            return Response(SubscribeReadSerializer(author).data,
+            return Response(SubscriptionSerializer(author).data,
                             status.HTTP_201_CREATED)
         return Response(serializer.errors,
                         status.HTTP_400_BAD_REQUEST)
+
+
+class SubscriptionsView(mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (User
+                .objects
+                .annotated(user=self.request.user)
+                .filter(is_subscribed=True)
+                .prefetch_related('recipes'))
 
 
 class PurchaseView(views.APIView):
