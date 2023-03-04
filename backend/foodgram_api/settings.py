@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'corsheaders',
+    'corsheaders',
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
@@ -54,7 +54,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -168,29 +168,3 @@ AUTH_USER_MODEL = 'users.User'
 DJOSER = {
     'LOGIN_FIELD': 'email',
 }
-
-
-# Отладка
-#
-# if DEBUG:
-#     LOGGING = {
-#         'version': 1,
-#         'filters': {
-#             'require_debug_true': {
-#                 '()': 'django.utils.log.RequireDebugTrue',
-#             }
-#         },
-#         'handlers': {
-#             'console': {
-#                 'level': 'DEBUG',
-#                 'filters': ['require_debug_true'],
-#                 'class': 'logging.StreamHandler',
-#             }
-#         },
-#         'loggers': {
-#             'django.db.backends': {
-#                 'level': 'DEBUG',
-#                 'handlers': ['console'],
-#             }
-#         }
-#     }

@@ -35,7 +35,6 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = User(**attrs)
         password = attrs.get("password")
-
         try:
             validate_password(password, user)
         except ValidationError as e:
@@ -65,3 +64,11 @@ class ChangePasswordSerializer(serializers.Serializer):
             user=self.context['request'].user
         )
         return value
+
+    def validate(self, attrs):
+        current_password = attrs.get('current_password')
+        new_password = attrs.get('new_password')
+        if new_password == current_password:
+            raise serializers.ValidationError(
+                'Новый и старый пароли должны отличаться.')
+        return attrs

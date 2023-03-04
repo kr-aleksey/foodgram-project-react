@@ -17,7 +17,7 @@ class UserViewSet(mixins.CreateModelMixin,
     serializer_class = serializers.UserSerializer
 
     def get_queryset(self):
-        return User.objects.annotated(user=self.request.user)
+        return User.objects.with_is_subscribed(user=self.request.user)
 
     def get_permissions(self):
         if self.action in ('me', 'retrieve'):

@@ -5,8 +5,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import Favorite, Ingredient, Purchase, Recipe, RecipeIngredient, Tag
-from recipes.services import create_recipe, update_recipe
+from recipes import services
+from recipes.models import (Favorite, Ingredient, Purchase, Recipe,
+                            RecipeIngredient, Tag)
 from users.models import Subscription
 from users.serializers import UserSerializer
 
@@ -23,6 +24,9 @@ class Base64ImageField(serializers.ImageField):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор ингредиентов.
+    """
     class Meta:
         model = Ingredient
         fields = ['id', 'name', 'measurement_unit']
@@ -30,6 +34,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор тегов.
+    """
     class Meta:
         model = Tag
         fields = ['id', 'name', 'color', 'slug']
@@ -37,6 +44,9 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор ингредиентов рецепта.
+    """
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient',
         queryset=Ingredient.objects.all()
@@ -57,7 +67,8 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'measurement_unit', 'amount']
 
 
-class TagListingField(serializers.RelatedField):
+class TagField(serializers.RelatedField):
+
     def to_representation(self, value):
         return {
             'id': value.id,
@@ -71,13 +82,15 @@ class TagListingField(serializers.RelatedField):
             return self.queryset.get(pk=int(data))
         except (ObjectDoesNotExist, ValueError):
             raise serializers.ValidationError(
-                f'Недопустимый первичный ключ "{data}" '
-                f'- объект не существует.'
+                f'Недопустимый первичный ключ "{data}" - тег не найден.'
             )
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    tags = TagListingField(many=True, queryset=Tag.objects.all())
+    """
+    Сериализатор рецептов.
+    """
+    tags = TagField(many=True, queryset=Tag.objects.all())
     ingredients = RecipeIngredientSerializer(many=True,
                                              source='ingredients_in_recipe')
     image = Base64ImageField()
@@ -102,24 +115,26 @@ class RecipeSerializer(serializers.ModelSerializer):
                             'is_favorited',
                             'is_in_shopping_cart']
 
-    def __init__(self, *args, **kwargs):
-        kwargs['partial'] = False
-        super().__init__(*args, **kwargs)
-
     def create(self, validated_data):
-        return create_recipe(validated_data)
+        return services.create_recipe(validated_data)
 
     def update(self, instance, validated_data):
-        return update_recipe(instance, validated_data)
+        return services.update_recipe(instance, validated_data)
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор рецептов для сокращенного представления.
+    """
     class Meta:
         model = Recipe
         fields = ['id', 'name', 'image', 'cooking_time']
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор избранных рецептов.
+    """
     class Meta:
         model = Favorite
         fields = ['user', 'recipe']
@@ -133,6 +148,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для создания подписки на автора.
+    """
     class Meta:
         model = Subscription
         fields = ['user', 'author']
@@ -152,8 +170,12 @@ class SubscribeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для чтения подписок.
+    """
     is_subscribed = serializers.BooleanField()
-    recipes = ShortRecipeSerializer(many=True)
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = User
@@ -165,11 +187,22 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             'last_name',
             'is_subscribed',
             'recipes',
+            'recipes_count',
         ]
         read_only_fields = ['id', 'is_subscribed']
 
+    def get_recipes(self, author):
+        request = self.context.get('request')
+        recipes_limit = request.query_params.get('recipes_limit')
+        recipes = services.get_author_recipes(author=author,
+                                              recipes_limit=recipes_limit)
+        return ShortRecipeSerializer(recipes, many=True).data
+
 
 class PurchaseSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для добавления рецепта в корзину покупок.
+    """
     class Meta:
         model = Purchase
         fields = ['user', 'recipe']
