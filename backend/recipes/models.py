@@ -42,8 +42,8 @@ class Tag(models.Model):
 
 class RecipeManager(models.Manager):
     def with_is_favorited_and_is_in_shopping_cart(self, user):
-        if not user.is_authenticated:
-            user = None
+        if user.is_anonymous:
+            return self.all()
         user_favorites = Favorite.objects.filter(user=user,
                                                  recipe=OuterRef('pk'))
         user_purchases = Purchase.objects.filter(user=user,

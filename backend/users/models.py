@@ -6,8 +6,8 @@ from django.db.models import Count, Exists, OuterRef
 class CustomUserManager(UserManager):
 
     def with_is_subscribed(self, user):
-        if not user.is_authenticated:
-            user = None
+        if user.is_anonymous:
+            return self.all()
         user_subscriptions = (Subscription
                               .objects
                               .filter(user=user,

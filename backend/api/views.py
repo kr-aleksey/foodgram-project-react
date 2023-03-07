@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, views, viewsets
@@ -10,7 +9,6 @@ from rest_framework.response import Response
 from recipes import services as recipe_services
 from recipes.models import Ingredient, Tag
 from users import services as user_services
-
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
@@ -68,24 +66,21 @@ class FavoriteView(views.APIView):
 
     @staticmethod
     def delete(request, recipe_id):
-        try:
-            recipe_services.delete_favorite(request.user, recipe_id)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ObjectDoesNotExist:
+        result = recipe_services.delete_favorite(request.user, recipe_id)
+        if result[0] == 0:
             return Response('Рецепт не найден в избранном',
-                            status.HTTP_400_BAD_REQUEST)
+                            status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod
     def post(request, recipe_id):
         serializer = FavoriteSerializer(
             data={'user': request.user.pk, 'recipe': recipe_id}
         )
-        if serializer.is_valid():
-            favorite = serializer.save()
-            return Response(ShortRecipeSerializer(favorite.recipe).data,
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        favorite = serializer.save()
+        return Response(ShortRecipeSerializer(favorite.recipe).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class SubscribeView(views.APIView):
@@ -96,29 +91,24 @@ class SubscribeView(views.APIView):
 
     @staticmethod
     def delete(request, author_id):
-        try:
-            user_services.delete_subscription(user=request.user,
-                                              author=author_id)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ObjectDoesNotExist:
-            return Response('Подписка не найдена',
-                            status.HTTP_400_BAD_REQUEST)
+        result = user_services.delete_subscription(user=request.user,
+                                                   author=author_id)
+        if result[0] == 0:
+            return Response('Подписка не найдена', status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod
     def post(request, author_id):
         serializer = SubscribeSerializer(
             data={'user': request.user.pk, 'author': author_id},
         )
-        if serializer.is_valid():
-            serializer.save()
-            author = (recipe_services.get_author_with_annotations(
-                author_id=author_id, user=request.user))
-            serializer = SubscriptionSerializer(author,
-                                                context={'request': request})
-            return Response(serializer.data,
-                            status.HTTP_201_CREATED)
-        return Response(serializer.errors,
-                        status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        author = (recipe_services.get_author_with_annotations(
+            author_id=author_id, user=request.user))
+        serializer = SubscriptionSerializer(author,
+                                            context={'request': request})
+        return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 class SubscriptionsViewSet(mixins.ListModelMixin,
@@ -141,13 +131,12 @@ class PurchaseView(views.APIView):
 
     @staticmethod
     def delete(request, recipe_id):
-        try:
-            recipe_services.delete_purchase(user=request.user,
-                                            recipe=recipe_id)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ObjectDoesNotExist:
+        result = recipe_services.delete_purchase(user=request.user,
+                                                 recipe=recipe_id)
+        if result[0] == 0:
             return Response('Покупка не найдена в корзине.',
-                            status.HTTP_400_BAD_REQUEST)
+                            status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod
     def post(request, recipe_id):
@@ -155,12 +144,10 @@ class PurchaseView(views.APIView):
             data={'user': request.user.pk,
                   'recipe': recipe_id}
         )
-        if serializer.is_valid():
-            purchase = serializer.save()
-            return Response(ShortRecipeSerializer(purchase.recipe).data,
-                            status.HTTP_201_CREATED)
-        return Response(serializer.errors,
-                        status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        purchase = serializer.save()
+        return Response(ShortRecipeSerializer(purchase.recipe).data,
+                        status.HTTP_201_CREATED)
 
 
 class ShoppingCartView(views.APIView):

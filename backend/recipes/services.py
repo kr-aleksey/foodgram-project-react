@@ -46,14 +46,14 @@ def delete_purchase(user, recipe):
     """
     Удаляет рецепт из списка покупок пользователя.
     """
-    return Purchase.objects.get(user=user, recipe=recipe).delete()
+    return Purchase.objects.filter(user=user, recipe=recipe).delete()
 
 
 def delete_favorite(user, recipe):
     """
     Удаляет рецепт из избранного пользователя.
     """
-    return Favorite.objects.get(user=user, recipe=recipe).delete()
+    return Favorite.objects.filter(user=user, recipe=recipe).delete()
 
 
 def get_author_with_annotations(author_id, user):

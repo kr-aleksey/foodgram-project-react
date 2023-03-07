@@ -7,7 +7,7 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
-    is_subscribed = serializers.BooleanField(read_only=True)
+    is_subscribed = serializers.BooleanField(read_only=True, default=False)
     password = serializers.CharField(style={"input_type": "password"},
                                      write_only=True)
 
