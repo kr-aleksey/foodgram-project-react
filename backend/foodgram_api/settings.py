@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$z&rmfg0ol6h1&&)m&hih_estd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['http://127.0.0.1:8000', 'http://backend']
+ALLOWED_HOSTS = ['http://127.0.0.1:8000', 'backend']
 CORS_ALLOWED_ORIGINS = ['http://127.0.0.1:8000', 'http://backend']
 # CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://backend']
