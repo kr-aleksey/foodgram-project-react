@@ -1,14 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from recipes import services as recipe_services
+from recipes.models import Ingredient, Tag
 from rest_framework import mixins, status, views, viewsets
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-
-from recipes import services as recipe_services
-from recipes.models import Ingredient, Tag
 from users import services as user_services
+
 from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,

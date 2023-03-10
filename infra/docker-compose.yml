@@ -1,8 +1,8 @@
-version: '3.3'
+version: '3.8'
 services:
 
   db:
-    image: postgres:13.0-alpine
+    image: postgres:15.2-alpine
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data/
@@ -10,10 +10,10 @@ services:
       - ./.env
 
   backend:
-    #    image: kraleksey/api_yamdb_final:latest
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: kraleksey/foodgram_backend:latest
+#    build:
+#      context: ../backend
+#      dockerfile: Dockerfile
     restart: always
     volumes:
       - static_volume:/app/static/

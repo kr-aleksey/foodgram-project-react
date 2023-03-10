@@ -4,7 +4,7 @@ import os
 from django.conf import settings
 from django.db import migrations
 
-INGREDIENTS_FILE = os.path.join(settings.BASE_DIR.parent,
+INGREDIENTS_FILE = os.path.join(settings.BASE_DIR,
                                 'data/ingredients.json')
 MIGRATION_ERR_MSG = (
     """\nОшибка миграции данных! 
