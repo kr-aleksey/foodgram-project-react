@@ -5,7 +5,7 @@ jobs:
   backend_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/chekout@v2
+      - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
