@@ -11,9 +11,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$z&rmfg0ol6h1&&)m&hih_estd
 DEBUG = os.getenv('DEBUG', False)
 
 ALLOWED_HOSTS = ['*']
-# CORS_ALLOWED_ORIGINS = ['*']
-CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1']
+CORS_ALLOWED_ORIGINS = ['http://127.0.0.1', 'http://158.160.53.6']
+# CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://158.160.53.6']
 
 # Application definition
 
