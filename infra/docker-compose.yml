@@ -11,9 +11,6 @@ services:
 
   backend:
     image: kraleksey/foodgram_backend:latest
-#    build:
-#      context: ../backend
-#      dockerfile: Dockerfile
     restart: always
     volumes:
       - static_volume:/app/static/
@@ -24,9 +21,7 @@ services:
       - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: kraleksey/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 

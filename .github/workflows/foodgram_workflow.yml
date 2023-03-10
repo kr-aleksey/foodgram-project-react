@@ -43,7 +43,6 @@ jobs:
   build_and_push_frontend_to_docker_hub:
     if: ${{ github.ref_name == 'master' }}
     runs-on: ubuntu-latest
-    needs: backend_tests
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -60,3 +59,52 @@ jobs:
           context: frontend
           push: true
           tags: kraleksey/foodgram_frontend:latest
+
+  deploy:
+    if: ${{ github.ref_name == 'master' }}
+    runs-on: ubuntu-latest
+    needs: build_and_push_to_docker_hub
+    steps:
+      - name: executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          script: |
+            sudo docker-compose stop
+            sudo docker-compose rm web -f
+            rm .env -f
+            touch .env
+            echo DEBUG=False >> .env
+            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+            echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env
+            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+            sudo docker-compose pull
+            sudo docker-compose up -d
+            sudo docker image prune -f
+
+  send_message:
+    if: ${{ always() }}
+    needs: [ backend_tests, build_and_push_backend_to_docker_hub, build_and_push_frontend_to_docker_hub, deploy ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.workflow }}
+            Actor: ${{ github.actor }}
+            Branch: ${{ github.ref_name }}
+            Results:
+              testing: ${{ needs.backend_tests.result }}
+              building and pushing back: ${{ needs.build_and_push_backend_to_docker_hub.result }}
+              building and pushing front: ${{ needs.build_and_push_frontend_to_docker_hub.result }}
+              deploy: ${{ needs.deploy.result }}
