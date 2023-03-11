@@ -4,6 +4,10 @@
 
 ![Foodgram workflow](https://github.com/kr-aleksey/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
+http://158.160.53.6/ 
+
+Администратор - username: admin, email: admin@fake.fake, pass: food-admin
+
 ### Технологии
 
 * Python
@@ -27,15 +31,15 @@
 
 Каждый рецепт имеет один или более тегов. Это помогает быстро находить нужные рецепты.
 
-Проект имеет простую систему регистрации новых пользователей. Есть для самостоятельной 
-смены пароля пользователем.
+Проект имеет простую систему регистрации новых пользователей. Есть интерфейс для 
+самостоятельной смены пароля пользователем.
 
 **Foodgram** имеет интерфейс администратора. Администратор имеет возможность управлять
 аккаунтами пользователей. Он может блокировать, активировать и удалять их. Может управлять
 избранным, списками покупок, подписками пользователей. Администратор может редактировать 
 рецепты пользователей.
 
-**Foodgram** - это дипломный проект курса Яндекс Практикум - Python разработчик. Мною 
+**Foodgram** - это мой дипломный проект курса Яндекс Практикум - Python разработчик. Мною 
 разработан backend проекта на Python, Django и DRF. Проект использует СУБД PostgreSQL.
 Настроена контейнеризация Docker. CI/CD - проекта базируется на технологии Github Actions.
 Workflow проекта автоматически выполняет задачи тестирования, сборки Docker образов, 
@@ -51,7 +55,7 @@ Workflow проекта автоматически выполняет задач
 
 * Клонируйте репозиторий:
 ```
-https://github.com/kr-aleksey/foodgram-project-react.git
+git clone https://github.com/kr-aleksey/foodgram-project-react.git
 ```
 * Перейдите в папку infra:
 ```
@@ -75,6 +79,7 @@ sudo docker-compose run backend bash
 python manage.py migrate
 python manage.py collectstatic
 python manage.py createsuperuser
+exit
 ```
 ### Всё, проект запущен!
 Через браузер зайдите на страницы проекта:
@@ -84,7 +89,7 @@ python manage.py createsuperuser
 * http://127.0.0.1/api - API
 
 Всего **Foodgram** использует четыре контейнера Docker.
-* **backend** - API **Foodgram** (ОС Linux, Python 3.10, Gunicorn, Django 4.1, ...)
+* **backend** - API **Foodgram** (ОС Linux, Python 3.10, Django 4.1, Gunicorn ...)
 * **db** - СУБД PostgreSQL 15
 * **frontend** - подготавливает файлы React
 * **nginx** - web-сервер Nginx
