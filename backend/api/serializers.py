@@ -26,16 +26,24 @@ class IngredientSerializer(serializers.ModelSerializer):
     """
     Сериализатор ингредиентов.
     """
+
+    name = serializers.SerializerMethodField()
+
     class Meta:
         model = Ingredient
         fields = ['id', 'name', 'measurement_unit']
         read_only_fields = ['id']
+
+    @staticmethod
+    def get_name(obj):
+        return f'{obj.name} ({obj.measurement_unit})'
 
 
 class TagSerializer(serializers.ModelSerializer):
     """
     Сериализатор тегов.
     """
+
     class Meta:
         model = Tag
         fields = ['id', 'name', 'color', 'slug']
@@ -126,6 +134,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     """
     Сериализатор рецептов для сокращенного представления.
     """
+
     class Meta:
         model = Recipe
         fields = ['id', 'name', 'image', 'cooking_time']
@@ -135,6 +144,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
     """
     Сериализатор избранных рецептов.
     """
+
     class Meta:
         model = Favorite
         fields = ['user', 'recipe']
@@ -151,6 +161,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
     """
     Сериализатор для создания подписки на автора.
     """
+
     class Meta:
         model = Subscription
         fields = ['user', 'author']
@@ -203,6 +214,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     """
     Сериализатор для добавления рецепта в корзину покупок.
     """
+
     class Meta:
         model = Purchase
         fields = ['user', 'recipe']
