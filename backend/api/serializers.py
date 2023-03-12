@@ -27,16 +27,10 @@ class IngredientSerializer(serializers.ModelSerializer):
     Сериализатор ингредиентов.
     """
 
-    name = serializers.SerializerMethodField()
-
     class Meta:
         model = Ingredient
         fields = ['id', 'name', 'measurement_unit']
         read_only_fields = ['id']
-
-    @staticmethod
-    def get_name(obj):
-        return f'{obj.name} ({obj.measurement_unit})'
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -128,6 +122,16 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         return services.update_recipe(instance, validated_data)
+
+    def validate_ingredients(self, recipe_ingredients):
+        unique_ingredients = []
+        for recipe_ingredient in recipe_ingredients:
+            ingredient = recipe_ingredient.get('ingredient')
+            if ingredient in unique_ingredients:
+                raise serializers.ValidationError(
+                    'Каждый ингредиент должен быть выбран только один раз.')
+            unique_ingredients.append(ingredient)
+        return recipe_ingredients
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
