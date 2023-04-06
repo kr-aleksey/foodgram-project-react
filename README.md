@@ -4,10 +4,6 @@
 
 ![Foodgram workflow](https://github.com/kr-aleksey/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 
-http://158.160.53.6/ 
-
-Администратор - username: admin, email: admin@fake.fake, pass: food-admin
-
 ### Технологии
 
 * Python
